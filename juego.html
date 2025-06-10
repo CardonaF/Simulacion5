@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/estilo.css">
+    <title>Actividad de Snake</title>
+</head>
+<body>
+    <div class="containerT">
+        <h1>Actividad de Snake con Preguntas</h1>
+        <h3>Responde las preguntas que aparezcan segun vayas avanzando</h3>
+    </div>
+
+    <canvas id="juego" width="400" height="400"></canvas>
+
+    <div id="containerPregunta" class="container oculto">
+        <div class="container2">
+            <p id="preguntaT" class="preguntaT"></p>
+            <div id="opciones" class="opciones"></div>
+        </div>
+    </div>
+    <div class="mensaje" id="mensaje"></div>
+
+    <script>
+        cont= 0;
+        const canvas= document.getElementById("juego");
+        const ctx= canvas.getContext("2d");
+
+        let serpiente= [{x:10, y:10}];
+        let direccion= {x:0,y:0};
+        let comida= generarComida();
+        let intervalo;
+        let preguntas= [
+            {
+                texto: "¿Cual es el equipo mas grande de colombia?", opciones: ["Atletico Nacional", "America de Cali", "Independiente Medellin", "Millonarios"], correcta: 0
+            },
+            {
+                texto: "¿Cual es el record mundial actual de los 100 metros planos (Masculino)?", opciones: ["9.69 segundos", "9.58 segundos", "9.72 segundos", "9.63 segundos"], correcta: 1
+            },
+            {
+                texto: "¿En que año se celebraron los primeros Juegos Olimpicos modernos?", opciones: ["1890", "1900", "1896", "1888"], correcta: 2
+            },
+            {
+                texto: "¿En que deporte se utiliza el touchdown?", opciones: ["Tenis", "Baloncesto", "Hockey", "Futbol americano"], correcta: 3
+            },
+            {
+                texto: "¿Cual es el pais de origen del futbol?", opciones: ["Brasil", "Inglaterra", "España", "Italia"], correcta: 1
+            },
+            {
+                texto: "¿Cuantos jugadores tiene un equipo de voleibol en la cancha?", opciones: ["5", "7", "6", "8"], correcta: 2
+            },
+            {
+                texto: "¿Que seleccion ha ganado mas copas del mundo de futbol?", opciones: ["Brasil", "Alemania", "Italia", "Francia"], correcta: 0
+            },
+            {
+                texto: "¿Cuantas medallas olimpicas ha ganado Michael Phels?", opciones: ["18", "28", "20", "22"], correcta: 1
+            },
+            {
+                texto: "¿Como se llama el golpe que inicia el juego en el tenis?", opciones: ["Reves", "Saque", "Smash", "Servicio"], correcta: 3
+            },
+            {
+                texto: "¿Cual es el unico pais que ha participado en todos los Juegos Olimpicos modernos?", opciones: ["Grecia", "Estados Unidos", "Francia", "Italia"], correcta:1
+            }, 
+            {
+                texto: "¿Que significa tarjeta roja en el futbol?", opciones: ["Expulsion de jugador", "Advertencia al jugador", "Cambio de jugador", "Gol marcado por el jugador"], correcta: 0
+            }];
+
+
+        function mover(){
+            const cabeza= {...serpiente[0]};
+            cabeza.x += direccion.x;
+            cabeza.y += direccion.y;
+            
+            if(cabeza.x < 0  || cabeza.y < 0 || cabeza.x >= 20 || cabeza.y >= 20){
+                clearInterval(intervalo);
+                setTimeout(() => {
+                    reiniciar();
+                }, 10);
+            }
+
+            for(let i= 1; i < serpiente.length; i++){
+                if(serpiente[i].x === cabeza.x && serpiente[i].y === cabeza.y){
+                    clearInterval(intervalo);
+                    setTimeout(() => {
+                        reiniciar();
+                    }, 10);
+                } 
+            }
+
+            serpiente.unshift(cabeza);
+
+            if(cabeza.x === comida.x && cabeza.y === comida.y){
+                mostrarPregunta();
+                comida= generarComida();
+            }else{
+                serpiente.pop();
+            }
+            dibujar();
+        }
+        function generarComida(){
+            return{
+                x: Math.floor(Math.random() *20), y: Math.floor(Math.random() *20)
+            };
+        }
+        function dibujar(){
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            serpiente.forEach(segmento => {
+                ctx.fillStyle= "green";
+                ctx.fillRect(segmento.x * 20, segmento.y * 20,20,20)
+            });
+            ctx.fillStyle= "blue";
+            ctx.fillRect(comida.x * 20, comida.y * 20,20,20);
+        }
+
+        document.addEventListener("keydown", t => {
+            if(t.key === "ArrowUp") direccion= {x: 0, y:-1};
+            if(t.key === "ArrowDown") direccion= {x: 0, y:1};
+            if(t.key === "ArrowLeft") direccion= {x:-1, y:0};
+            if(t.key === "ArrowRight") direccion= {x:1, y:0};
+        }); 
+
+        function mostrarPregunta(){
+            clearInterval(intervalo);
+            const pregunta= preguntas[Math.floor(Math.random() * preguntas.length)];
+            document.getElementById("preguntaT").innerText= pregunta.texto;
+
+
+            const cOpciones= document.getElementById("opciones");
+            cOpciones.innerHTML= "";
+  
+            pregunta.opciones.forEach((opcion, idx) => {
+                const btn= document.createElement("button");
+                let mensaje= document.getElementById("mensaje");
+                btn.innerText= opcion;
+                btn.classList.add("botonOpciones");
+                btn.onclick= () => {
+                    if(idx === pregunta.correcta){
+                        cont++;
+                        mensaje.textContent= "Correctas: "+cont;
+                        mensaje.style.backgroundColor= "rgb(0,0,0,0.8)";
+                        mensaje.style.color= "aliceblue";
+                        document.getElementById("containerPregunta").classList.add("oculto");
+                        intervalo= setInterval(mover,350);
+                    }else{
+                        reiniciar();
+                    }
+                }
+                cOpciones.appendChild(btn);
+            })
+            document.getElementById("containerPregunta").classList.remove("oculto");
+        }
+        function reiniciar(){
+            alert("Has perdido, vuelve a intentarlo \nConseguiste "+cont+ " respuesta(s) correctas");
+            window.location.reload();
+
+        }
+
+        intervalo= setInterval(mover,350); 
+
+    </script>
+
+</body>
+</html>
