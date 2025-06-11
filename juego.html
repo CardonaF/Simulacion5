@@ -127,9 +127,14 @@
 
         function mostrarPregunta(){
             clearInterval(intervalo);
-            const pregunta= preguntas[Math.floor(Math.random() * preguntas.length)];
+            const i= Math.floor(Math.random()* preguntas.length);
+            const pregunta= preguntas[i];
             document.getElementById("preguntaT").innerText= pregunta.texto;
 
+            if(preguntas.length=== 0){
+                alert("Felicitaciones!\nRespondiste todas las preguntas correctamente");
+                window.location.reload();
+            }
 
             const cOpciones= document.getElementById("opciones");
             cOpciones.innerHTML= "";
@@ -146,6 +151,7 @@
                         mensaje.style.backgroundColor= "rgb(0,0,0,0.8)";
                         mensaje.style.color= "aliceblue";
                         document.getElementById("containerPregunta").classList.add("oculto");
+                        preguntas.splice(i, 1);
                         intervalo= setInterval(mover,300);
                     }else{
                         fallo= 3;
